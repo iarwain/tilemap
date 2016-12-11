@@ -94,7 +94,7 @@ TileSet *LoadTileSet(const orxSTRING _zSetName)
         orxConfig_GetVector("TextureOrigin", &vTileOrigin);
 
         // Gets tile's origin (tiles)
-        orxVector_Div(&vTileOrigin, &vTileOrigin, &vTileSize);
+        orxVector_Round(&vTileOrigin, orxVector_Div(&vTileOrigin, &vTileOrigin, &vTileSize));
 
         // Computes its index
         u32TileIndex = orxF2U(vTileOrigin.fX + (pstSet->vSize.fX * vTileOrigin.fY));
@@ -133,8 +133,8 @@ orxTEXTURE *LoadMap(const orxSTRING _zMapName, const TileSet *_pstTileSet)
   // Gets its size (tiles)
   orxConfig_GetVector("Size", &vSize);
 
-  // Computes texture size (using 1 byte per index as we have less than 256 tiles in the set)
-  u32BitmapSize = (orxF2U(vSize.fX * vSize.fY) + 3) / 4;
+  // Computes texture size (using 2 bytes per index as we have less than 65536 tiles in the set)
+  u32BitmapSize = (orxF2U(vSize.fX * vSize.fY) + 1) / 2;
 
   // Creates bitmap
   pstBitmap = orxDisplay_CreateBitmap(u32BitmapSize, 1);
@@ -167,6 +167,7 @@ orxTEXTURE *LoadMap(const orxSTRING _zMapName, const TileSet *_pstTileSet)
     for(i = 0; i < orxF2U(vSize.fX); i++)
     {
       const orxSTRING zTile;
+      orxU32          u32Index;
 
       // Pushes tile's section
       orxConfig_PushSection(orxConfig_GetListString(acRow, i));
@@ -177,7 +178,12 @@ orxTEXTURE *LoadMap(const orxSTRING _zMapName, const TileSet *_pstTileSet)
       // Pops config section
       orxConfig_PopSection();
 
-      *pu8Value++ = (orxU32) CAST_HELPER orxHashTable_Get(_pstTileSet->pstIndexTable, (orxU64)zTile);
+      // Gets matching tile index
+      u32Index = (orxU32)CAST_HELPER orxHashTable_Get(_pstTileSet->pstIndexTable, (orxU64)zTile);
+
+      // Stores it over two bytes
+      *pu8Value++ = (u32Index & 0xFF00) >> 8;
+      *pu8Value++ = u32Index & 0xFF;
     }
   }
   // Zeroes last remaining bytes

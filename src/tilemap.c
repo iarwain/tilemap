@@ -27,7 +27,6 @@ typedef struct TileSet
 //! Variables
 
 orxBANK *spstTileSetBank;
-TileSet *spstTileSet;
 
 
 //! Code
@@ -120,8 +119,90 @@ TileSet *LoadTileSet(const orxSTRING _zSetName)
   return pstSet;
 }
 
+orxTEXTURE *LoadMap(const orxSTRING _zMapName, const TileSet *_pstTileSet)
+{
+  orxVECTOR   vSize;
+  orxBITMAP  *pstBitmap;
+  orxTEXTURE *pstTexture;
+  orxU8      *pu8Data, *pu8Value;
+  orxU32      i, j, u32BitmapSize;
+
+  // Pushes its config section
+  orxConfig_PushSection(_zMapName);
+
+  // Gets its size (tiles)
+  orxConfig_GetVector("Size", &vSize);
+
+  // Computes texture size (using 1 byte per index as we have less than 256 tiles in the set)
+  u32BitmapSize = (orxF2U(vSize.fX * vSize.fY) + 3) / 4;
+
+  // Creates bitmap
+  pstBitmap = orxDisplay_CreateBitmap(u32BitmapSize, 1);
+  orxASSERT(pstBitmap);
+
+  // Creates texture
+  pstTexture = orxTexture_Create();
+  orxASSERT(pstTexture);
+
+  // Links them together
+  orxTexture_LinkBitmap(pstTexture, pstBitmap, _zMapName, orxTRUE);
+
+  // Upgrades map to become its own graphic
+  orxConfig_SetString("Texture", _zMapName);
+  orxConfig_SetString("Pivot", "center");
+
+  // Allocates bitmap data
+  pu8Data = (orxU8 *)orxMemory_Allocate(u32BitmapSize * sizeof(orxRGBA), orxMEMORY_TYPE_TEMP);
+  orxASSERT(pu8Data);
+
+  // For all rows
+  for(j = 0, pu8Value = pu8Data; j < orxF2U(vSize.fY); j++)
+  {
+    orxCHAR acRow[32] = {};
+
+    // Gets row's name
+    orxString_NPrint(acRow, sizeof(acRow) - 1, "Row%u", j + 1);
+
+    // For all columns
+    for(i = 0; i < orxF2U(vSize.fX); i++)
+    {
+      const orxSTRING zTile;
+
+      // Pushes tile's section
+      orxConfig_PushSection(orxConfig_GetListString(acRow, i));
+
+      // Gets its name
+      zTile = orxConfig_GetCurrentSection();
+
+      // Pops config section
+      orxConfig_PopSection();
+
+      *pu8Value++ = (orxU32) CAST_HELPER orxHashTable_Get(_pstTileSet->pstIndexTable, (orxU64)zTile);
+    }
+  }
+  // Zeroes last remaining bytes
+  while(pu8Value < pu8Data + (u32BitmapSize * sizeof(orxRGBA)))
+  {
+    *pu8Value++ = 0;
+  }
+
+  // Updates texture with indices
+  orxDisplay_SetBitmapData(pstBitmap, pu8Data, u32BitmapSize * sizeof(orxRGBA));
+
+  // Deletes bitmap data
+  orxMemory_Free(pu8Data);
+  pu8Data = orxNULL;
+
+  // Pops config section
+  orxConfig_PopSection();
+
+  // Done!
+  return pstTexture;
+}
+
 orxSTATUS orxFASTCALL Init()
 {
+  TileSet  *pstGreenTileSet;
   orxSTATUS eResult = orxSTATUS_SUCCESS;
 
   // Creates TileSet memory bank
@@ -129,7 +210,10 @@ orxSTATUS orxFASTCALL Init()
   orxASSERT(spstTileSetBank);
 
   // Loads tile set
-  spstTileSet = LoadTileSet("GreenTiles");
+  pstGreenTileSet = LoadTileSet("GreenTiles");
+
+  // Loads map
+  LoadMap("CliffMap", pstGreenTileSet);
 
   // Creates viewport
   orxViewport_CreateFromConfig("Viewport");

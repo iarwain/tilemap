@@ -18,6 +18,7 @@
 typedef struct TileSet
 {
   orxVECTOR     vSize;
+  orxVECTOR     vTileSize;
   orxTEXTURE   *pstTexture;
   orxHASHTABLE *pstIndexTable;
   orxHASHTABLE *pstTileTable;
@@ -48,7 +49,7 @@ TileSet *LoadTileSet(const orxSTRING _zSetName)
   // Success?
   if(pstSet->pstTexture != orxNULL)
   {
-    orxVECTOR       vTileSize, vSetSize = {};
+    orxVECTOR       vSetSize = {};
     const orxSTRING zSetName;
     orxU32          i, u32Counter;
 
@@ -56,11 +57,11 @@ TileSet *LoadTileSet(const orxSTRING _zSetName)
     orxTexture_GetSize(pstSet->pstTexture, &vSetSize.fX, &vSetSize.fY);
 
     // Gets tile size
-    orxConfig_GetVector("TextureSize", &vTileSize);
-    vTileSize.fZ = orxFLOAT_1;
+    orxConfig_GetVector("TextureSize", &pstSet->vTileSize);
+    pstSet->vTileSize.fZ = orxFLOAT_1;
 
     // Gets set size (tiles)
-    orxVector_Div(&pstSet->vSize, &vSetSize, &vTileSize);
+    orxVector_Div(&pstSet->vSize, &vSetSize, &pstSet->vTileSize);
 
     // Creates index & tile tables
     pstSet->pstIndexTable = orxHashTable_Create(orxF2U(pstSet->vSize.fX * pstSet->vSize.fY), orxHASHTABLE_KU32_FLAG_NONE, orxMEMORY_TYPE_MAIN);
@@ -94,7 +95,7 @@ TileSet *LoadTileSet(const orxSTRING _zSetName)
         orxConfig_GetVector("TextureOrigin", &vTileOrigin);
 
         // Gets tile's origin (tiles)
-        orxVector_Round(&vTileOrigin, orxVector_Div(&vTileOrigin, &vTileOrigin, &vTileSize));
+        orxVector_Round(&vTileOrigin, orxVector_Div(&vTileOrigin, &vTileOrigin, &pstSet->vTileSize));
 
         // Computes its index
         u32TileIndex = orxF2U(vTileOrigin.fX + (pstSet->vSize.fX * vTileOrigin.fY));
@@ -121,7 +122,7 @@ TileSet *LoadTileSet(const orxSTRING _zSetName)
 
 orxTEXTURE *LoadMap(const orxSTRING _zMapName, const TileSet *_pstTileSet)
 {
-  orxVECTOR   vSize;
+  orxVECTOR   vSize, vScreenSize = {};
   orxBITMAP  *pstBitmap;
   orxTEXTURE *pstTexture;
   orxU8      *pu8Data, *pu8Value;
@@ -150,6 +151,16 @@ orxTEXTURE *LoadMap(const orxSTRING _zMapName, const TileSet *_pstTileSet)
   // Upgrades map to become its own graphic
   orxConfig_SetString("Texture", _zMapName);
   orxConfig_SetString("Pivot", "center");
+
+  // Setups the shader on the map itself, with all needed parameters
+  orxConfig_SetString("Code", "@MapShader");
+  orxConfig_SetString("ParamList", "@MapShader");
+  orxConfig_SetVector("MapSize", &vSize);
+  orxConfig_SetVector("TileSize", &_pstTileSet->vTileSize);
+  orxConfig_SetVector("SetSize", &_pstTileSet->vSize);
+  orxConfig_SetString("Set", orxTexture_GetName(_pstTileSet->pstTexture));
+  orxDisplay_GetScreenSize(&vScreenSize.fX, &vScreenSize.fY);
+  orxConfig_SetVector("Resolution", &vScreenSize);
 
   // Allocates bitmap data
   pu8Data = (orxU8 *)orxMemory_Allocate(u32BitmapSize * sizeof(orxRGBA), orxMEMORY_TYPE_TEMP);

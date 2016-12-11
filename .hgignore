@@ -1,0 +1,9 @@
+syntax: glob
+*.idb
+*.pdb
+*.suo
+*.o
+build/
+*.ilk
+*.log
+*.cih

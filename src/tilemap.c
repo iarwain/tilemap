@@ -163,6 +163,7 @@ orxTEXTURE *LoadMap(const orxSTRING _zMapName, const TileSet *_pstTileSet)
   orxDisplay_GetScreenSize(&vScreenSize.fX, &vScreenSize.fY);
   orxConfig_SetVector("Resolution", &vScreenSize);
   orxConfig_SetVector("CameraPos", &orxVECTOR_0);
+  orxConfig_SetVector("Highlight", &orxVECTOR_0);
 
   // Allocates bitmap data
   pu8Data = (orxU8 *)orxMemory_Allocate(u32BitmapSize * sizeof(orxRGBA), orxMEMORY_TYPE_TEMP);

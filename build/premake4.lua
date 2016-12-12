@@ -108,6 +108,7 @@ solution "Tilemap"
         flags {"Unicode"}
 
     configuration {"*Debug*"}
+        targetsuffix ("d")
         defines {"__orxDEBUG__"}
         links {"orxd"}
 

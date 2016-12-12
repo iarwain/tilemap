@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{A81B890B-68DE-E341-AB06-FDBE1092DDAF}</ProjectGuid>
+    <ProjectGuid>{8353C2D6-2BC1-1641-88F1-5FC4BCE4F049}</ProjectGuid>
     <RootNamespace>Tilemap</RootNamespace>
     <Keyword>Win32Proj</Keyword>
   </PropertyGroup>
@@ -67,7 +67,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>..\..\..\bin\windows\x64\</OutDir>
     <IntDir>obj\x64\Debug\</IntDir>
-    <TargetName>tilemap</TargetName>
+    <TargetName>tilemapd</TargetName>
     <TargetExt>.exe</TargetExt>
     <LinkIncremental>true</LinkIncremental>
     <GenerateManifest>false</GenerateManifest>
@@ -75,7 +75,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>..\..\..\bin\windows\x32\</OutDir>
     <IntDir>obj\x32\Debug\</IntDir>
-    <TargetName>tilemap</TargetName>
+    <TargetName>tilemapd</TargetName>
     <TargetExt>.exe</TargetExt>
     <LinkIncremental>true</LinkIncremental>
     <GenerateManifest>false</GenerateManifest>
@@ -112,7 +112,7 @@
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <ProgramDataBaseFileName>$(OutDir)tilemap.pdb</ProgramDataBaseFileName>
+      <ProgramDataBaseFileName>$(OutDir)tilemapd.pdb</ProgramDataBaseFileName>
       <CompileAs>CompileAsCpp</CompileAs>
     </ClCompile>
     <ResourceCompile>
@@ -123,7 +123,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>orxd.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>$(OutDir)tilemap.exe</OutputFile>
+      <OutputFile>$(OutDir)tilemapd.exe</OutputFile>
       <AdditionalLibraryDirectories>..\..\..\lib\windows\x64;$(ORX)\lib\dynamic;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
       <TargetMachine>MachineX64</TargetMachine>
@@ -145,7 +145,7 @@
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
-      <ProgramDataBaseFileName>$(OutDir)tilemap.pdb</ProgramDataBaseFileName>
+      <ProgramDataBaseFileName>$(OutDir)tilemapd.pdb</ProgramDataBaseFileName>
       <CompileAs>CompileAsCpp</CompileAs>
     </ClCompile>
     <ResourceCompile>
@@ -156,7 +156,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>orxd.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>$(OutDir)tilemap.exe</OutputFile>
+      <OutputFile>$(OutDir)tilemapd.exe</OutputFile>
       <AdditionalLibraryDirectories>..\..\..\lib\windows\x32;$(ORX)\lib\dynamic;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
       <TargetMachine>MachineX86</TargetMachine>

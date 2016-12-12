@@ -221,6 +221,7 @@ orxTEXTURE *LoadMap(const orxSTRING _zMapName, const TileSet *_pstTileSet)
 
 void orxFASTCALL Update(const orxCLOCK_INFO *_pstInfo, void *_pContext)
 {
+  orxVECTOR vMousePos;
   orxSHADER *pstShader;
 
   // Screenshot?
@@ -230,14 +231,12 @@ void orxFASTCALL Update(const orxCLOCK_INFO *_pstInfo, void *_pContext)
     orxScreenshot_Capture();
   }
 
+  // Gets mouse position
+  orxMouse_GetPosition(&vMousePos);
+
   // Should scroll?
   if(orxInput_IsActive("Scroll"))
   {
-    orxVECTOR vMousePos;
-
-    // Gets mouse world position
-    orxRender_GetWorldPosition(orxMouse_GetPosition(&vMousePos), orxNULL, &vMousePos);
-
     // Just started?
     if(orxInput_HasNewStatus("Scroll"))
     {
@@ -258,11 +257,6 @@ void orxFASTCALL Update(const orxCLOCK_INFO *_pstInfo, void *_pContext)
     // Just stopped?
     if(orxInput_HasNewStatus("Scroll"))
     {
-      orxVECTOR vMousePos;
-
-      // Gets mouse world position
-      orxRender_GetWorldPosition(orxMouse_GetPosition(&vMousePos), orxNULL, &vMousePos);
-
       // Computes speed
       orxVector_Sub(&svScrollSpeed, &svMousePos, &vMousePos);
     }
@@ -278,6 +272,9 @@ void orxFASTCALL Update(const orxCLOCK_INFO *_pstInfo, void *_pContext)
   {
     // Sets its camera position
     orxShader_SetVectorParam(pstShader, "CameraPos", 0, &svScrollPos);
+
+    // Sets its highlight position
+    orxShader_SetVectorParam(pstShader, "Highlight", 0, &vMousePos);
   }
 }
 

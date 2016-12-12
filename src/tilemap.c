@@ -4,13 +4,11 @@
 
 //! Defines
 
-#ifdef __orxWINDOWS__
-  #ifdef __orxX86_64__
-    #define CAST_HELPER (orxU64)
-  #else /* __orxX86_64__ */
-    #define CAST_HELPER (orxU32)
-  #endif /* __orxX86_64__ */
-#endif /* __orxWINDOWS__ */
+#if defined(__orxX86_64__) || defined(__orxPPC64__) || defined(__orxARM64__)
+  #define CAST_HELPER (orxU64)
+#else /* __orxX86_64__ || __orxPPC64__ || __orxARM64__ */
+  #define CAST_HELPER (orxU32)
+#endif /* __orxX86_64__ || __orxPPC64__ || __orxARM64__ */
 
 
 //! Structures

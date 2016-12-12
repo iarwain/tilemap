@@ -20,8 +20,7 @@ typedef struct TileSet
   orxVECTOR     vSize;
   orxVECTOR     vTileSize;
   orxTEXTURE   *pstTexture;
-  orxHASHTABLE *pstIndexTable;
-  orxHASHTABLE *pstTileTable;
+  orxHASHTABLE *pstIndexMap;
 } TileSet;
 
 
@@ -64,11 +63,9 @@ TileSet *LoadTileSet(const orxSTRING _zSetName)
     // Gets set size (tiles)
     orxVector_Div(&pstSet->vSize, &vSetSize, &pstSet->vTileSize);
 
-    // Creates index & tile tables
-    pstSet->pstIndexTable = orxHashTable_Create(orxF2U(pstSet->vSize.fX * pstSet->vSize.fY), orxHASHTABLE_KU32_FLAG_NONE, orxMEMORY_TYPE_MAIN);
-    pstSet->pstTileTable  = orxHashTable_Create(orxF2U(pstSet->vSize.fX * pstSet->vSize.fY), orxHASHTABLE_KU32_FLAG_NONE, orxMEMORY_TYPE_MAIN);
-    orxASSERT(pstSet->pstIndexTable);
-    orxASSERT(pstSet->pstTileTable);
+    // Creates index map
+    pstSet->pstIndexMap = orxHashTable_Create(orxF2U(pstSet->vSize.fX * pstSet->vSize.fY), orxHASHTABLE_KU32_FLAG_NONE, orxMEMORY_TYPE_MAIN);
+    orxASSERT(pstSet->pstIndexMap);
 
     // Gets current section's name (for faster comparisons with orxConfig_GetParent() results)
     zSetName = orxConfig_GetCurrentSection();
@@ -102,8 +99,7 @@ TileSet *LoadTileSet(const orxSTRING _zSetName)
         u32TileIndex = orxF2U(vTileOrigin.fX + (pstSet->vSize.fX * vTileOrigin.fY));
 
         // Stores it
-        orxHashTable_Add(pstSet->pstIndexTable, (orxU64)zSectionName, (void *) CAST_HELPER u32TileIndex);
-        orxHashTable_Add(pstSet->pstTileTable, u32TileIndex, (void *)zSectionName);
+        orxHashTable_Add(pstSet->pstIndexMap, (orxU64)zSectionName, (void *) CAST_HELPER u32TileIndex);
       }
     }
   }
@@ -193,7 +189,7 @@ orxTEXTURE *LoadMap(const orxSTRING _zMapName, const TileSet *_pstTileSet)
       orxConfig_PopSection();
 
       // Gets matching tile index
-      u32Index = (orxU32)CAST_HELPER orxHashTable_Get(_pstTileSet->pstIndexTable, (orxU64)zTile);
+      u32Index = (orxU32)CAST_HELPER orxHashTable_Get(_pstTileSet->pstIndexMap, (orxU64)zTile);
 
       // Stores it over two bytes
       *pu8Value++ = (u32Index & 0xFF00) >> 8;

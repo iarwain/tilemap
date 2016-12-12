@@ -27,7 +27,8 @@ typedef struct TileSet
 
 //! Variables
 
-orxBANK *spstTileSetBank;
+static orxBANK  *spstTileSetBank;
+static orxVECTOR svMousePos, svScrollSpeed, svScrollPos;
 
 
 //! Code
@@ -218,6 +219,68 @@ orxTEXTURE *LoadMap(const orxSTRING _zMapName, const TileSet *_pstTileSet)
   return pstTexture;
 }
 
+void orxFASTCALL Update(const orxCLOCK_INFO *_pstInfo, void *_pContext)
+{
+  orxSHADER *pstShader;
+
+  // Screenshot?
+  if(orxInput_IsActive("Screenshot") && orxInput_HasNewStatus("Screenshot"))
+  {
+    // Captures it
+    orxScreenshot_Capture();
+  }
+
+  // Should scroll?
+  if(orxInput_IsActive("Scroll"))
+  {
+    orxVECTOR vMousePos;
+
+    // Gets mouse world position
+    orxRender_GetWorldPosition(orxMouse_GetPosition(&vMousePos), orxNULL, &vMousePos);
+
+    // Just started?
+    if(orxInput_HasNewStatus("Scroll"))
+    {
+      // Resets scroll speed
+      orxVector_Copy(&svScrollSpeed, &orxVECTOR_0);
+    }
+    else
+    {
+      // Computes speed
+      orxVector_Sub(&svScrollSpeed, &svMousePos, &vMousePos);
+    }
+
+    // Stores scroll position
+    orxVector_Copy(&svMousePos, &vMousePos);
+  }
+  else
+  {
+    // Just stopped?
+    if(orxInput_HasNewStatus("Scroll"))
+    {
+      orxVECTOR vMousePos;
+
+      // Gets mouse world position
+      orxRender_GetWorldPosition(orxMouse_GetPosition(&vMousePos), orxNULL, &vMousePos);
+
+      // Computes speed
+      orxVector_Sub(&svScrollSpeed, &svMousePos, &vMousePos);
+    }
+  }
+
+  // Updates scroll position
+  orxVector_Add(&svScrollPos, &svScrollPos, &svScrollSpeed);
+
+  // For all shaders
+  for(pstShader = orxSHADER(orxStructure_GetFirst(orxSTRUCTURE_ID_SHADER));
+      pstShader != orxNULL;
+      pstShader = orxSHADER(orxStructure_GetNext(pstShader)))
+  {
+    // Sets its camera position
+    orxShader_SetVectorParam(pstShader, "CameraPos", 0, &svScrollPos);
+  }
+}
+
 orxSTATUS orxFASTCALL Init()
 {
   TileSet  *pstGreenTileSet;
@@ -239,6 +302,9 @@ orxSTATUS orxFASTCALL Init()
   // Creates scene
   orxObject_CreateFromConfig("Scene");
 
+  // Registers update
+  orxClock_Register(orxClock_FindFirst(orx2F(-1.0f), orxCLOCK_TYPE_CORE), Update, orxNULL, orxMODULE_ID_MAIN, orxCLOCK_PRIORITY_HIGH);
+
   // Done!
   return eResult;
 }
@@ -246,13 +312,6 @@ orxSTATUS orxFASTCALL Init()
 orxSTATUS orxFASTCALL Run()
 {
   orxSTATUS eResult = orxSTATUS_SUCCESS;
-
-  // Screenshot?
-  if(orxInput_IsActive("Screenshot") && orxInput_HasNewStatus("Screenshot"))
-  {
-    // Captures it
-    orxScreenshot_Capture();
-  }
 
   // Quitting?
   if(orxInput_IsActive("Quit"))

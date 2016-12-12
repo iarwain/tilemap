@@ -26,8 +26,9 @@ typedef struct TileSet
 
 //! Variables
 
-static orxBANK  *spstTileSetBank;
-static orxVECTOR svMousePos, svScrollSpeed, svScrollPos;
+static orxBANK   *spstTileSetBank;
+static orxCAMERA *spstCamera;
+static orxVECTOR  svMousePos, svScrollSpeed;
 
 
 //! Code
@@ -218,7 +219,7 @@ orxTEXTURE *LoadMap(const orxSTRING _zMapName, const TileSet *_pstTileSet)
 
 void orxFASTCALL Update(const orxCLOCK_INFO *_pstInfo, void *_pContext)
 {
-  orxVECTOR vMousePos;
+  orxVECTOR vMousePos, vCameraPos = {};
   orxSHADER *pstShader;
 
   // Screenshot?
@@ -259,8 +260,14 @@ void orxFASTCALL Update(const orxCLOCK_INFO *_pstInfo, void *_pContext)
     }
   }
 
-  // Updates scroll position
-  orxVector_Add(&svScrollPos, &svScrollPos, &svScrollSpeed);
+  // Has camera?
+  if(spstCamera != orxNULL)
+  {
+    // Updates its position
+    orxCamera_GetPosition(spstCamera, &vCameraPos);
+    orxVector_Add(&vCameraPos, &vCameraPos, &svScrollSpeed);
+    orxCamera_SetPosition(spstCamera, &vCameraPos);
+  }
 
   // For all shaders
   for(pstShader = orxSHADER(orxStructure_GetFirst(orxSTRUCTURE_ID_SHADER));
@@ -268,7 +275,7 @@ void orxFASTCALL Update(const orxCLOCK_INFO *_pstInfo, void *_pContext)
       pstShader = orxSHADER(orxStructure_GetNext(pstShader)))
   {
     // Sets its camera position
-    orxShader_SetVectorParam(pstShader, "CameraPos", 0, &svScrollPos);
+    orxShader_SetVectorParam(pstShader, "CameraPos", 0, &vCameraPos);
 
     // Sets its highlight position
     orxShader_SetVectorParam(pstShader, "Highlight", 0, &vMousePos);
@@ -277,7 +284,8 @@ void orxFASTCALL Update(const orxCLOCK_INFO *_pstInfo, void *_pContext)
 
 orxSTATUS orxFASTCALL Init()
 {
-  TileSet  *pstGreenTileSet;
+  TileSet      *pstGreenTileSet;
+  orxVIEWPORT  *pstViewport;
   orxSTATUS eResult = orxSTATUS_SUCCESS;
 
   // Creates TileSet memory bank
@@ -291,7 +299,12 @@ orxSTATUS orxFASTCALL Init()
   LoadMap("CliffMap", pstGreenTileSet);
 
   // Creates viewport
-  orxViewport_CreateFromConfig("Viewport");
+  pstViewport = orxViewport_CreateFromConfig("Viewport");
+  orxSTRUCTURE_ASSERT(pstViewport);
+
+  // Gets associated camera
+  spstCamera = orxViewport_GetCamera(pstViewport);
+  orxSTRUCTURE_ASSERT(spstCamera);
 
   // Creates scene
   orxObject_CreateFromConfig("Scene");

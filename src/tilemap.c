@@ -145,7 +145,7 @@ orxTEXTURE *LoadMap(const orxSTRING _zMapName, const TileSet *_pstTileSet)
   orxTexture_LinkBitmap(pstTexture, pstBitmap, _zMapName, orxTRUE);
 
   // Upgrades map to become its own graphic
-  orxConfig_SetString("Texture", _zMapName);
+  orxConfig_SetString("Texture", orxTexture_GetName(_pstTileSet->pstTexture));
   orxConfig_SetString("Pivot", "center");
 
   // Setups the shader on the map itself, with all needed parameters
@@ -154,7 +154,7 @@ orxTEXTURE *LoadMap(const orxSTRING _zMapName, const TileSet *_pstTileSet)
   orxConfig_SetVector("MapSize", &vSize);
   orxConfig_SetVector("TileSize", &_pstTileSet->vTileSize);
   orxConfig_SetVector("SetSize", &_pstTileSet->vSize);
-  orxConfig_SetString("Set", orxTexture_GetName(_pstTileSet->pstTexture));
+  orxConfig_SetString("Map", _zMapName);
   orxDisplay_GetScreenSize(&vScreenSize.fX, &vScreenSize.fY);
   orxConfig_SetVector("Resolution", &vScreenSize);
   orxConfig_SetVector("CameraPos", &orxVECTOR_0);

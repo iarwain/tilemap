@@ -115,6 +115,8 @@ solution "Tilemap"
     configuration {"*Release*"}
         flags {"Optimize", "NoRTTI"}
         links {"orx"}
+
+    configuration {"not macosx", "*Release*"}
         kind ("WindowedApp")
 
 
@@ -130,14 +132,12 @@ solution "Tilemap"
     configuration {"macosx"}
         buildoptions
         {
-            "-isysroot /Developer/SDKs/MacOSX10.6.sdk",
             "-mmacosx-version-min=10.6",
             "-gdwarf-2",
             "-Wno-write-strings"
         }
         linkoptions
         {
-            "-isysroot /Developer/SDKs/MacOSX10.6.sdk",
             "-mmacosx-version-min=10.6",
             "-dead_strip"
         }

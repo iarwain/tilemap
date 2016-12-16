@@ -26,7 +26,7 @@ typedef struct TileSet
 
 static orxBANK   *spstTileSetBank;
 static orxCAMERA *spstCamera;
-static orxVECTOR  svMousePos, svScrollSpeed;
+static orxVECTOR  svMousePos, svScrollSpeed, svCameraSize;
 
 
 //! Code
@@ -151,6 +151,7 @@ orxTEXTURE *LoadMap(const orxSTRING _zMapName, const TileSet *_pstTileSet)
   // Setups the shader on the map itself, with all needed parameters
   orxConfig_SetString("Code", "@MapShader");
   orxConfig_SetString("ParamList", "@MapShader");
+  orxConfig_SetVector("CameraSize", &svCameraSize);
   orxConfig_SetVector("MapSize", &vSize);
   orxConfig_SetVector("TileSize", &_pstTileSet->vTileSize);
   orxConfig_SetVector("SetSize", &_pstTileSet->vSize);
@@ -217,7 +218,7 @@ orxTEXTURE *LoadMap(const orxSTRING _zMapName, const TileSet *_pstTileSet)
 
 void orxFASTCALL Update(const orxCLOCK_INFO *_pstInfo, void *_pContext)
 {
-  orxVECTOR vMousePos, vCameraPos = {};
+  orxVECTOR vMousePos, vCameraPos = {}, vScreenSize, vRatio;
   orxSHADER *pstShader;
 
   // Screenshot?
@@ -229,6 +230,13 @@ void orxFASTCALL Update(const orxCLOCK_INFO *_pstInfo, void *_pContext)
 
   // Gets mouse position
   orxMouse_GetPosition(&vMousePos);
+
+  // Gets screen size
+  orxDisplay_GetScreenSize(&vScreenSize.fX, &vScreenSize.fY);
+  vScreenSize.fZ = orxFLOAT_1;
+
+  // Gets rendering aspect ratio to correct scrolling speed in full screen, based on mouse movement
+  orxVector_Div(&vRatio, &svCameraSize, &vScreenSize);
 
   // Should scroll?
   if(orxInput_IsActive("Scroll"))
@@ -242,7 +250,7 @@ void orxFASTCALL Update(const orxCLOCK_INFO *_pstInfo, void *_pContext)
     else
     {
       // Computes speed
-      orxVector_Sub(&svScrollSpeed, &svMousePos, &vMousePos);
+      orxVector_Mul(&svScrollSpeed, orxVector_Sub(&svScrollSpeed, &svMousePos, &vMousePos), &vRatio);
     }
 
     // Stores scroll position
@@ -254,7 +262,7 @@ void orxFASTCALL Update(const orxCLOCK_INFO *_pstInfo, void *_pContext)
     if(orxInput_HasNewStatus("Scroll"))
     {
       // Computes speed
-      orxVector_Sub(&svScrollSpeed, &svMousePos, &vMousePos);
+      orxVector_Mul(&svScrollSpeed, orxVector_Sub(&svScrollSpeed, &svMousePos, &vMousePos), &vRatio);
     }
   }
 
@@ -282,19 +290,15 @@ void orxFASTCALL Update(const orxCLOCK_INFO *_pstInfo, void *_pContext)
 
 orxSTATUS orxFASTCALL Init()
 {
+  orxAABOX      stFrustum;
   TileSet      *pstGreenTileSet;
   orxVIEWPORT  *pstViewport;
+  orxFLOAT      fCorrectionRatio;
   orxSTATUS eResult = orxSTATUS_SUCCESS;
 
   // Creates TileSet memory bank
   spstTileSetBank = orxBank_Create(32, sizeof(TileSet), orxBANK_KU32_FLAG_NONE, orxMEMORY_TYPE_MAIN);
   orxASSERT(spstTileSetBank);
-
-  // Loads tile set
-  pstGreenTileSet = LoadTileSet("GreenTiles");
-
-  // Loads map
-  LoadMap("CliffMap", pstGreenTileSet);
 
   // Creates viewport
   pstViewport = orxViewport_CreateFromConfig("Viewport");
@@ -303,6 +307,29 @@ orxSTATUS orxFASTCALL Init()
   // Gets associated camera
   spstCamera = orxViewport_GetCamera(pstViewport);
   orxSTRUCTURE_ASSERT(spstCamera);
+
+  // Gets its size
+  orxCamera_GetFrustum(spstCamera, &stFrustum);
+  orxVector_Sub(&svCameraSize, &stFrustum.vBR, &stFrustum.vTL);
+
+  // Gets viewport correction ratio
+  fCorrectionRatio = orxViewport_GetCorrectionRatio(pstViewport);
+
+  // Applies correction ratio (for precise mouse movement in fullscreen when the screen aspect ratio doesn't match the camera's one)
+  if(fCorrectionRatio >= orxFLOAT_1)
+  {
+    svCameraSize.fY *= fCorrectionRatio;
+  }
+  else
+  {
+    svCameraSize.fX /= fCorrectionRatio;
+  }
+
+  // Loads tile set
+  pstGreenTileSet = LoadTileSet("GreenTiles");
+
+  // Loads map
+  LoadMap("CliffMap", pstGreenTileSet);
 
   // Creates scene
   orxObject_CreateFromConfig("Scene");

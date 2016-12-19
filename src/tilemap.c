@@ -392,6 +392,9 @@ int main(int argc, char **argv)
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
+  // Sets config bootstrap
+  orxConfig_SetBootstrap(Bootstrap);
+
   // Executes orx
   orx_WinExecute(Init, Run, Exit);
 

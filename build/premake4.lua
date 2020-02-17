@@ -1,6 +1,6 @@
--- This premake script should be used with the orx-customized version of premake4.
--- Its Mercurial repository can be found at https://bitbucket.org/orx/premake-stable.
--- A copy, including binaries, can also be found in the extern/premake folder of any orx distributions.
+-- This premake script should be used with orx-customized version of premake4.
+-- Its Hg repository can be found at https://bitbucket.org/orx/premake-stable.
+-- A copy, including binaries, can also be found in the extern/premake folder.
 
 --
 -- Globals
@@ -10,14 +10,15 @@ function initconfigurations ()
     return
     {
         "Debug",
+        "Profile",
         "Release"
     }
 end
 
 function initplatforms ()
-    if os.is ("windows") then
-        if string.lower(_ACTION) == "vs2013"
-        or string.lower(_ACTION) == "vs2015" then
+    if os.is ("windows")
+    or os.is ("linux") then
+        if os.is64bit () then
             return
             {
                 "x64",
@@ -26,19 +27,13 @@ function initplatforms ()
         else
             return
             {
-                "Native"
+                "x32",
+                "x64"
             }
         end
-    elseif os.is64bit () then
+    elseif os.is ("macosx") then
         return
         {
-            "x64",
-            "x32"
-        }
-    else
-        return
-        {
-            "x32",
             "x64"
         }
     end
@@ -50,9 +45,16 @@ function defaultaction (name, action)
    end
 end
 
-defaultaction ("windows", "vs2015")
+defaultaction ("windows", "vs2019")
 defaultaction ("linux", "gmake")
 defaultaction ("macosx", "gmake")
+
+newoption
+{
+    trigger = "to",
+    value   = "path",
+    description = "Set the output location for the generated files"
+}
 
 if os.is ("macosx") then
     osname = "mac"
@@ -60,7 +62,8 @@ else
     osname = os.get()
 end
 
-destination = "./" .. osname .. "/" .. _ACTION
+destination = _OPTIONS["to"] or "./" .. osname .. "/" .. _ACTION
+copybase = path.rebase ("..", os.getcwd (), os.getcwd () .. "/" .. destination)
 
 
 --
@@ -85,24 +88,35 @@ solution "Tilemap"
         initplatforms ()
     }
 
-    includedirs
-    {
-        "../include",
-        "../include/orx",
-        "$(ORX)/include"
-    }
+    targetdir ("../bin")
 
     flags
     {
         "NoPCH",
         "NoManifest",
-        "EnableSSE2",
         "FloatFast",
         "NoNativeWChar",
         "NoExceptions",
+        "NoIncrementalLink",
+        "NoEditAndContinue",
+        "NoMinimalRebuild",
         "Symbols",
         "StaticRuntime"
     }
+
+    configuration {"not xcode*"}
+        includedirs {"$(ORX)/include"}
+        libdirs {"$(ORX)/lib/dynamic"}
+
+    configuration {"xcode*"}
+        includedirs {"../include"}
+        libdirs {"../lib/dynamic"}
+
+    configuration {"not vs2015", "not vs2017", "not vs2019"}
+        flags {"EnableSSE2"}
+
+    configuration {"not x64"}
+        flags {"EnableSSE2"}
 
     configuration {"not windows"}
         flags {"Unicode"}
@@ -112,15 +126,31 @@ solution "Tilemap"
         defines {"__orxDEBUG__"}
         links {"orxd"}
 
+    configuration {"*Profile*"}
+        targetsuffix ("p")
+        defines {"__orxPROFILER__"}
+        flags {"Optimize", "NoRTTI"}
+        links {"orxp"}
+
     configuration {"*Release*"}
         flags {"Optimize", "NoRTTI"}
         links {"orx"}
 
-    configuration {"not macosx", "*Release*"}
+    configuration {"windows", "*Release*"}
         kind ("WindowedApp")
 
 
 -- Linux
+
+    configuration {"linux"}
+        buildoptions {"-Wno-unused-function"}
+        linkoptions {"-Wl,-rpath ./", "-Wl,--export-dynamic"}
+        links
+        {
+            "dl",
+            "m",
+            "rt"
+        }
 
     -- This prevents an optimization bug from happening with some versions of gcc on linux
     configuration {"linux", "not *Debug*"}
@@ -132,14 +162,30 @@ solution "Tilemap"
     configuration {"macosx"}
         buildoptions
         {
-            "-mmacosx-version-min=10.6",
+            "-mmacosx-version-min=10.9",
+            "-stdlib=libc++",
             "-gdwarf-2",
             "-Wno-write-strings"
         }
         linkoptions
         {
-            "-mmacosx-version-min=10.6",
+            "-mmacosx-version-min=10.9",
+            "-stdlib=libc++",
             "-dead_strip"
+        }
+
+    configuration {"macosx", "not codelite", "not codeblocks"}
+        links
+        {
+            "Foundation.framework",
+            "AppKit.framework"
+        }
+
+    configuration {"macosx", "codelite or codeblocks"}
+        linkoptions
+        {
+            "-framework Foundation",
+            "-framework AppKit"
         }
 
     configuration {"macosx", "x32"}
@@ -151,6 +197,45 @@ solution "Tilemap"
 
 -- Windows
 
+    configuration {"windows", "vs*"}
+        buildoptions
+        {
+            "/MP",
+            "/EHsc"
+        }
+
+    configuration {"windows", "gmake", "x32"}
+        prebuildcommands
+        {
+            "$(eval CC := i686-w64-mingw32-gcc)",
+            "$(eval CXX := i686-w64-mingw32-g++)",
+            "$(eval AR := i686-w64-mingw32-gcc-ar)"
+        }
+
+    configuration {"windows", "gmake", "x64"}
+        prebuildcommands
+        {
+            "$(eval CC := x86_64-w64-mingw32-gcc)",
+            "$(eval CXX := x86_64-w64-mingw32-g++)",
+            "$(eval AR := x86_64-w64-mingw32-gcc-ar)"
+        }
+
+    configuration {"windows", "codelite or codeblocks", "x32"}
+        envs
+        {
+            "CC=i686-w64-mingw32-gcc",
+            "CXX=i686-w64-mingw32-g++",
+            "AR=i686-w64-mingw32-gcc-ar"
+        }
+
+    configuration {"windows", "codelite or codeblocks", "x64"}
+        envs
+        {
+            "CC=x86_64-w64-mingw32-gcc",
+            "CXX=x86_64-w64-mingw32-g++",
+            "AR=x86_64-w64-mingw32-gcc-ar"
+        }
+
 
 --
 -- Project: tilemap
@@ -160,63 +245,37 @@ project "Tilemap"
 
     files
     {
+        "../src/**.cpp",
         "../src/**.c",
         "../include/**.h",
-        "../data/*.ini"
+        "../data/config/**.ini"
     }
-    targetname ("tilemap")
+
+    configuration {"windows", "vs*"}
+        buildoptions {"/EHsc"}
+
+    vpaths
+    {
+        ["config"] = {"**.ini"}
+    }
 
 
 -- Linux
 
     configuration {"linux"}
-        linkoptions {"-Wl,-rpath ./", "-Wl,--export-dynamic"}
-        links
-        {
-            "dl",
-            "m",
-            "rt"
-        }
-
-    configuration {"linux", "x32"}
-        libdirs {"../lib/linux/x32"}
-        targetdir ("../bin/linux/x32")
-
-    configuration {"linux", "x64"}
-        libdirs {"../lib/linux/x64"}
-        targetdir ("../bin/linux/x64")
+        postbuildcommands {"cp -f $(ORX)/lib/dynamic/liborx*.so " .. copybase .. "/bin"}
 
 
 -- Mac OS X
 
-    configuration {"macosx"}
-        links
-        {
-            "Foundation.framework",
-            "AppKit.framework"
-        }
-        libdirs {"../lib/mac"}
-        targetdir ("../bin/mac")
+    configuration {"macosx", "xcode*"}
+        postbuildcommands {"cp -f ../lib/dynamic/liborx*.dylib " .. copybase .. "/bin"}
+
+    configuration {"macosx", "not xcode*"}
+        postbuildcommands {"cp -f $(ORX)/lib/dynamic/liborx*.dylib " .. copybase .. "/bin"}
 
 
 -- Windows
 
     configuration {"windows"}
-        links
-        {
-            "winmm"
-        }
-
-    configuration {"windows", "x64"}
-        libdirs {"../lib/windows/x64"}
-        targetdir ("../bin/windows/x64")
-
-    configuration {"windows", "not x64"}
-        libdirs {"../lib/windows/x32"}
-        targetdir ("../bin/windows/x32")
-
-
--- Common
-
-    configuration {}
-        libdirs {"$(ORX)/lib/dynamic"}
+        postbuildcommands {"cmd /c copy /Y $(ORX)\\lib\\dynamic\\orx*.dll " .. path.translate(copybase, "\\") .. "\\bin"}

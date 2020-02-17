@@ -70,7 +70,7 @@ TileSet *LoadTileSet(const orxSTRING _zSetName)
     zSetName = orxConfig_GetCurrentSection();
 
     // For all config sections
-    for(i = 0, u32Counter = orxConfig_GetSectionCounter();
+    for(i = 0, u32Counter = orxConfig_GetSectionCount();
         i < u32Counter;
         i++)
     {
@@ -366,6 +366,7 @@ orxSTATUS orxFASTCALL Bootstrap()
   orxSTATUS eResult = orxSTATUS_SUCCESS;
 
   // Adds config resource storages
+  orxResource_AddStorage(orxCONFIG_KZ_RESOURCE_GROUP, "../data/config", orxFALSE);
   orxResource_AddStorage(orxCONFIG_KZ_RESOURCE_GROUP, "../../data/config", orxFALSE);
   orxResource_AddStorage(orxCONFIG_KZ_RESOURCE_GROUP, "../../../data/config", orxFALSE);
 
@@ -386,20 +387,3 @@ int main(int argc, char **argv)
 }
 
 
-#ifdef __orxWINDOWS__
-
-#include "windows.h"
-
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
-{
-  // Sets config bootstrap
-  orxConfig_SetBootstrap(Bootstrap);
-
-  // Executes orx
-  orx_WinExecute(Init, Run, Exit);
-
-  // Done!
-  return EXIT_SUCCESS;
-}
-
-#endif // __orxWINDOWS__

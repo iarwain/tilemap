@@ -10,7 +10,6 @@ function initconfigurations ()
     return
     {
         "Debug",
-        "Profile",
         "Release"
     }
 end
@@ -63,7 +62,7 @@ else
 end
 
 destination = _OPTIONS["to"] or "./" .. osname .. "/" .. _ACTION
-copybase = path.rebase ("..", os.getcwd (), os.getcwd () .. "/" .. destination)
+copydest = path.rebase ("../bin/" .. osname, os.getcwd (), os.getcwd () .. "/" .. destination)
 
 
 --
@@ -87,8 +86,6 @@ solution "Tilemap"
     {
         initplatforms ()
     }
-
-    targetdir ("../bin")
 
     flags
     {
@@ -243,6 +240,8 @@ solution "Tilemap"
 
 project "Tilemap"
 
+    targetname ("tilemap")
+
     files
     {
         "../src/**.cpp",
@@ -263,19 +262,24 @@ project "Tilemap"
 -- Linux
 
     configuration {"linux"}
-        postbuildcommands {"cp -f $(ORX)/lib/dynamic/liborx*.so " .. copybase .. "/bin"}
+        targetdir ("../bin/linux")
+        postbuildcommands {"cp -f $(ORX)/lib/dynamic/liborx*.so " .. copydest}
 
 
 -- Mac OS X
 
+    configuration {"macosx"}
+        targetdir ("../bin/mac")
+
     configuration {"macosx", "xcode*"}
-        postbuildcommands {"cp -f ../lib/dynamic/liborx*.dylib " .. copybase .. "/bin"}
+        postbuildcommands {"cp -f ../lib/dynamic/liborx*.dylib " .. copydest}
 
     configuration {"macosx", "not xcode*"}
-        postbuildcommands {"cp -f $(ORX)/lib/dynamic/liborx*.dylib " .. copybase .. "/bin"}
+        postbuildcommands {"cp -f $(ORX)/lib/dynamic/liborx*.dylib " .. copydest}
 
 
 -- Windows
 
     configuration {"windows"}
-        postbuildcommands {"cmd /c copy /Y $(ORX)\\lib\\dynamic\\orx*.dll " .. path.translate(copybase, "\\") .. "\\bin"}
+        targetdir ("../bin/windows")
+        postbuildcommands {"cmd /c copy /Y $(ORX)\\lib\\dynamic\\orx*.dll " .. path.translate(copydest, "\\")}

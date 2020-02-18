@@ -25,8 +25,6 @@ help:
 	@echo "CONFIGURATIONS:"
 	@echo "   debug64"
 	@echo "   release64"
-	@echo "   debug32"
-	@echo "   release32"
 	@echo ""
 	@echo "TARGETS:"
 	@echo "   all (default)"

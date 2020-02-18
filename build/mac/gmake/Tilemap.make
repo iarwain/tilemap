@@ -24,12 +24,12 @@ ifeq ($(config),debug64)
   TARGETDIR  = ../../../bin/mac
   TARGET     = $(TARGETDIR)/tilemapd
   DEFINES   += -D__orxDEBUG__
-  INCLUDES  += -I../../../include -I../../../include/orx -I$(ORX)/include
+  INCLUDES  += -I$(ORX)/include
   ALL_CPPFLAGS  += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
-  ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) -msse2 -ffast-math -g -m64 -mmacosx-version-min=10.6 -gdwarf-2 -Wno-write-strings
+  ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) -ffast-math -g -msse2 -m64 -mmacosx-version-min=10.9 -stdlib=libc++ -gdwarf-2 -Wno-write-strings
   ALL_CXXFLAGS  += $(CXXFLAGS) $(ALL_CFLAGS) -fno-exceptions
   ALL_RESFLAGS  += $(RESFLAGS) $(DEFINES) $(INCLUDES)
-  ALL_LDFLAGS   += $(LDFLAGS) -L../../../lib/mac -L$(ORX)/lib/dynamic -L. -m64 -L/usr/lib64 -mmacosx-version-min=10.6 -dead_strip
+  ALL_LDFLAGS   += $(LDFLAGS) -L$(ORX)/lib/dynamic -L. -m64 -L/usr/lib64 -mmacosx-version-min=10.9 -stdlib=libc++ -dead_strip
   LIBS      += -lorxd -framework Foundation -framework AppKit
   LDDEPS    +=
   LINKCMD    = $(CXX) -o $(TARGET) $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
@@ -38,6 +38,8 @@ ifeq ($(config),debug64)
   define PRELINKCMDS
   endef
   define POSTBUILDCMDS
+	@echo Running post-build commands
+	cp -f $(ORX)/lib/dynamic/liborx*.dylib ../../../bin/mac
   endef
 endif
 
@@ -46,12 +48,12 @@ ifeq ($(config),release64)
   TARGETDIR  = ../../../bin/mac
   TARGET     = $(TARGETDIR)/tilemap
   DEFINES   +=
-  INCLUDES  += -I../../../include -I../../../include/orx -I$(ORX)/include
+  INCLUDES  += -I$(ORX)/include
   ALL_CPPFLAGS  += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
-  ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) -msse2 -ffast-math -g -O2 -m64 -mmacosx-version-min=10.6 -gdwarf-2 -Wno-write-strings
+  ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) -ffast-math -g -msse2 -O2 -m64 -mmacosx-version-min=10.9 -stdlib=libc++ -gdwarf-2 -Wno-write-strings
   ALL_CXXFLAGS  += $(CXXFLAGS) $(ALL_CFLAGS) -fno-exceptions -fno-rtti
   ALL_RESFLAGS  += $(RESFLAGS) $(DEFINES) $(INCLUDES)
-  ALL_LDFLAGS   += $(LDFLAGS) -L../../../lib/mac -L$(ORX)/lib/dynamic -L. -m64 -L/usr/lib64 -mmacosx-version-min=10.6 -dead_strip
+  ALL_LDFLAGS   += $(LDFLAGS) -L$(ORX)/lib/dynamic -L. -m64 -L/usr/lib64 -mmacosx-version-min=10.9 -stdlib=libc++ -dead_strip
   LIBS      += -lorx -framework Foundation -framework AppKit
   LDDEPS    +=
   LINKCMD    = $(CXX) -o $(TARGET) $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
@@ -60,50 +62,8 @@ ifeq ($(config),release64)
   define PRELINKCMDS
   endef
   define POSTBUILDCMDS
-  endef
-endif
-
-ifeq ($(config),debug32)
-  OBJDIR     = obj/x32/Debug
-  TARGETDIR  = ../../../bin/mac
-  TARGET     = $(TARGETDIR)/tilemapd
-  DEFINES   += -D__orxDEBUG__
-  INCLUDES  += -I../../../include -I../../../include/orx -I$(ORX)/include
-  ALL_CPPFLAGS  += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
-  ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) -msse2 -ffast-math -g -m32 -mmacosx-version-min=10.6 -gdwarf-2 -Wno-write-strings -mfix-and-continue
-  ALL_CXXFLAGS  += $(CXXFLAGS) $(ALL_CFLAGS) -fno-exceptions
-  ALL_RESFLAGS  += $(RESFLAGS) $(DEFINES) $(INCLUDES)
-  ALL_LDFLAGS   += $(LDFLAGS) -L../../../lib/mac -L$(ORX)/lib/dynamic -L. -m32 -L/usr/lib32 -mmacosx-version-min=10.6 -dead_strip
-  LIBS      += -lorxd -framework Foundation -framework AppKit
-  LDDEPS    +=
-  LINKCMD    = $(CXX) -o $(TARGET) $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
-  define PREBUILDCMDS
-  endef
-  define PRELINKCMDS
-  endef
-  define POSTBUILDCMDS
-  endef
-endif
-
-ifeq ($(config),release32)
-  OBJDIR     = obj/x32/Release
-  TARGETDIR  = ../../../bin/mac
-  TARGET     = $(TARGETDIR)/tilemap
-  DEFINES   +=
-  INCLUDES  += -I../../../include -I../../../include/orx -I$(ORX)/include
-  ALL_CPPFLAGS  += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
-  ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) -msse2 -ffast-math -g -O2 -m32 -mmacosx-version-min=10.6 -gdwarf-2 -Wno-write-strings -mfix-and-continue
-  ALL_CXXFLAGS  += $(CXXFLAGS) $(ALL_CFLAGS) -fno-exceptions -fno-rtti
-  ALL_RESFLAGS  += $(RESFLAGS) $(DEFINES) $(INCLUDES)
-  ALL_LDFLAGS   += $(LDFLAGS) -L../../../lib/mac -L$(ORX)/lib/dynamic -L. -m32 -L/usr/lib32 -mmacosx-version-min=10.6 -dead_strip
-  LIBS      += -lorx -framework Foundation -framework AppKit
-  LDDEPS    +=
-  LINKCMD    = $(CXX) -o $(TARGET) $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
-  define PREBUILDCMDS
-  endef
-  define PRELINKCMDS
-  endef
-  define POSTBUILDCMDS
+	@echo Running post-build commands
+	cp -f $(ORX)/lib/dynamic/liborx*.dylib ../../../bin/mac
   endef
 endif
 

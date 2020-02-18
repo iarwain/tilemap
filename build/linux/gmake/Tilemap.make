@@ -21,15 +21,15 @@ endif
 
 ifeq ($(config),debug64)
   OBJDIR     = obj/x64/Debug
-  TARGETDIR  = ../../../bin/linux/x64
+  TARGETDIR  = ../../../bin/linux
   TARGET     = $(TARGETDIR)/tilemapd
   DEFINES   += -D__orxDEBUG__
-  INCLUDES  += -I../../../include -I../../../include/orx -I$(ORX)/include
+  INCLUDES  += -I$(ORX)/include
   ALL_CPPFLAGS  += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
-  ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) -msse2 -ffast-math -g -m64
+  ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) -ffast-math -g -msse2 -m64 -Wno-unused-function
   ALL_CXXFLAGS  += $(CXXFLAGS) $(ALL_CFLAGS) -fno-exceptions
   ALL_RESFLAGS  += $(RESFLAGS) $(DEFINES) $(INCLUDES)
-  ALL_LDFLAGS   += $(LDFLAGS) -L../../../lib/linux/x64 -L$(ORX)/lib/dynamic -L. -m64 -L/usr/lib64 -Wl,-rpath ./ -Wl,--export-dynamic
+  ALL_LDFLAGS   += $(LDFLAGS) -L$(ORX)/lib/dynamic -L. -static-libgcc -static-libstdc++ -m64 -L/usr/lib64 -Wl,-rpath ./ -Wl,--export-dynamic
   LIBS      += -lorxd -ldl -lm -lrt
   LDDEPS    +=
   LINKCMD    = $(CXX) -o $(TARGET) $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
@@ -38,20 +38,22 @@ ifeq ($(config),debug64)
   define PRELINKCMDS
   endef
   define POSTBUILDCMDS
+	@echo Running post-build commands
+	cp -f $(ORX)/lib/dynamic/liborx*.so ../../../bin/linux
   endef
 endif
 
 ifeq ($(config),release64)
   OBJDIR     = obj/x64/Release
-  TARGETDIR  = ../../../bin/linux/x64
+  TARGETDIR  = ../../../bin/linux
   TARGET     = $(TARGETDIR)/tilemap
   DEFINES   +=
-  INCLUDES  += -I../../../include -I../../../include/orx -I$(ORX)/include
+  INCLUDES  += -I$(ORX)/include
   ALL_CPPFLAGS  += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
-  ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) -msse2 -ffast-math -g -O2 -m64 -fschedule-insns
+  ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) -ffast-math -g -msse2 -O2 -m64 -Wno-unused-function -fschedule-insns
   ALL_CXXFLAGS  += $(CXXFLAGS) $(ALL_CFLAGS) -fno-exceptions -fno-rtti
   ALL_RESFLAGS  += $(RESFLAGS) $(DEFINES) $(INCLUDES)
-  ALL_LDFLAGS   += $(LDFLAGS) -L../../../lib/linux/x64 -L$(ORX)/lib/dynamic -L. -m64 -L/usr/lib64 -Wl,-rpath ./ -Wl,--export-dynamic
+  ALL_LDFLAGS   += $(LDFLAGS) -L$(ORX)/lib/dynamic -L. -static-libgcc -static-libstdc++ -m64 -L/usr/lib64 -Wl,-rpath ./ -Wl,--export-dynamic
   LIBS      += -lorx -ldl -lm -lrt
   LDDEPS    +=
   LINKCMD    = $(CXX) -o $(TARGET) $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
@@ -60,20 +62,22 @@ ifeq ($(config),release64)
   define PRELINKCMDS
   endef
   define POSTBUILDCMDS
+	@echo Running post-build commands
+	cp -f $(ORX)/lib/dynamic/liborx*.so ../../../bin/linux
   endef
 endif
 
 ifeq ($(config),debug32)
   OBJDIR     = obj/x32/Debug
-  TARGETDIR  = ../../../bin/linux/x32
+  TARGETDIR  = ../../../bin/linux
   TARGET     = $(TARGETDIR)/tilemapd
   DEFINES   += -D__orxDEBUG__
-  INCLUDES  += -I../../../include -I../../../include/orx -I$(ORX)/include
+  INCLUDES  += -I$(ORX)/include
   ALL_CPPFLAGS  += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
-  ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) -msse2 -ffast-math -g -m32
+  ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) -ffast-math -g -msse2 -m32 -Wno-unused-function
   ALL_CXXFLAGS  += $(CXXFLAGS) $(ALL_CFLAGS) -fno-exceptions
   ALL_RESFLAGS  += $(RESFLAGS) $(DEFINES) $(INCLUDES)
-  ALL_LDFLAGS   += $(LDFLAGS) -L../../../lib/linux/x32 -L$(ORX)/lib/dynamic -L. -m32 -L/usr/lib32 -Wl,-rpath ./ -Wl,--export-dynamic
+  ALL_LDFLAGS   += $(LDFLAGS) -L$(ORX)/lib/dynamic -L. -static-libgcc -static-libstdc++ -m32 -L/usr/lib32 -Wl,-rpath ./ -Wl,--export-dynamic
   LIBS      += -lorxd -ldl -lm -lrt
   LDDEPS    +=
   LINKCMD    = $(CXX) -o $(TARGET) $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
@@ -82,20 +86,22 @@ ifeq ($(config),debug32)
   define PRELINKCMDS
   endef
   define POSTBUILDCMDS
+	@echo Running post-build commands
+	cp -f $(ORX)/lib/dynamic/liborx*.so ../../../bin/linux
   endef
 endif
 
 ifeq ($(config),release32)
   OBJDIR     = obj/x32/Release
-  TARGETDIR  = ../../../bin/linux/x32
+  TARGETDIR  = ../../../bin/linux
   TARGET     = $(TARGETDIR)/tilemap
   DEFINES   +=
-  INCLUDES  += -I../../../include -I../../../include/orx -I$(ORX)/include
+  INCLUDES  += -I$(ORX)/include
   ALL_CPPFLAGS  += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
-  ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) -msse2 -ffast-math -g -O2 -m32 -fschedule-insns
+  ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) -ffast-math -g -msse2 -O2 -m32 -Wno-unused-function -fschedule-insns
   ALL_CXXFLAGS  += $(CXXFLAGS) $(ALL_CFLAGS) -fno-exceptions -fno-rtti
   ALL_RESFLAGS  += $(RESFLAGS) $(DEFINES) $(INCLUDES)
-  ALL_LDFLAGS   += $(LDFLAGS) -L../../../lib/linux/x32 -L$(ORX)/lib/dynamic -L. -m32 -L/usr/lib32 -Wl,-rpath ./ -Wl,--export-dynamic
+  ALL_LDFLAGS   += $(LDFLAGS) -L$(ORX)/lib/dynamic -L. -static-libgcc -static-libstdc++ -m32 -L/usr/lib32 -Wl,-rpath ./ -Wl,--export-dynamic
   LIBS      += -lorx -ldl -lm -lrt
   LDDEPS    +=
   LINKCMD    = $(CXX) -o $(TARGET) $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
@@ -104,6 +110,8 @@ ifeq ($(config),release32)
   define PRELINKCMDS
   endef
   define POSTBUILDCMDS
+	@echo Running post-build commands
+	cp -f $(ORX)/lib/dynamic/liborx*.so ../../../bin/linux
   endef
 endif
 

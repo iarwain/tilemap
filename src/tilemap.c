@@ -118,11 +118,11 @@ TileSet *LoadTileSet(const orxSTRING _zSetName)
 
 orxTEXTURE *LoadMap(const orxSTRING _zMapName, const TileSet *_pstTileSet)
 {
-  orxVECTOR   vSize, vScreenSize = {};
+  orxVECTOR   vSize, vMapSize = {}, vScreenSize = {};
   orxBITMAP  *pstBitmap;
   orxTEXTURE *pstTexture;
   orxU8      *pu8Data, *pu8Value;
-  orxU32      i, j, u32BitmapSize;
+  orxU32      i, j, u32BitmapWidth, u32BitmapHeight;
 
   // Pushes its config section
   orxConfig_PushSection(_zMapName);
@@ -130,11 +130,17 @@ orxTEXTURE *LoadMap(const orxSTRING _zMapName, const TileSet *_pstTileSet)
   // Gets its size (tiles)
   orxConfig_GetVector("Size", &vSize);
 
+  // Adjusts map size
+  vMapSize.fX = vSize.fX;
+  vMapSize.fY = vSize.fY;
+  vMapSize.fZ = orxMath_Ceil(vSize.fX / orx2F(2.0f)) * orx2F(2.0f);
+
   // Computes texture size (using 2 bytes per index as we have less than 65536 tiles in the set)
-  u32BitmapSize = (orxF2U(vSize.fX * vSize.fY) + 1) / 2;
+  u32BitmapWidth  = (orxF2U(vSize.fX) + 1) / 2;
+  u32BitmapHeight = orxF2U(vSize.fY);
 
   // Creates bitmap
-  pstBitmap = orxDisplay_CreateBitmap(u32BitmapSize, 1);
+  pstBitmap = orxDisplay_CreateBitmap(u32BitmapWidth, u32BitmapHeight);
   orxASSERT(pstBitmap);
 
   // Creates texture
@@ -152,7 +158,7 @@ orxTEXTURE *LoadMap(const orxSTRING _zMapName, const TileSet *_pstTileSet)
   orxConfig_SetString("Code", "@MapShader");
   orxConfig_SetString("ParamList", "@MapShader");
   orxConfig_SetVector("CameraSize", &svCameraSize);
-  orxConfig_SetVector("MapSize", &vSize);
+  orxConfig_SetVector("MapSize", &vMapSize);
   orxConfig_SetVector("TileSize", &_pstTileSet->vTileSize);
   orxConfig_SetVector("SetSize", &_pstTileSet->vSize);
   orxConfig_SetString("Map", _zMapName);
@@ -162,7 +168,7 @@ orxTEXTURE *LoadMap(const orxSTRING _zMapName, const TileSet *_pstTileSet)
   orxConfig_SetVector("Highlight", &orxVECTOR_0);
 
   // Allocates bitmap data
-  pu8Data = (orxU8 *)orxMemory_Allocate(u32BitmapSize * sizeof(orxRGBA), orxMEMORY_TYPE_TEMP);
+  pu8Data = (orxU8 *)orxMemory_Allocate(u32BitmapWidth * u32BitmapHeight * sizeof(orxRGBA), orxMEMORY_TYPE_TEMP);
   orxASSERT(pu8Data);
 
   // For all rows
@@ -195,15 +201,17 @@ orxTEXTURE *LoadMap(const orxSTRING _zMapName, const TileSet *_pstTileSet)
       *pu8Value++ = (u32Index & 0xFF00) >> 8;
       *pu8Value++ = u32Index & 0xFF;
     }
-  }
-  // Zeroes last remaining bytes
-  while(pu8Value < pu8Data + (u32BitmapSize * sizeof(orxRGBA)))
-  {
-    *pu8Value++ = 0;
+
+    // Zeroes padding bytes
+    if(orxF2U(vSize.fX) & 1)
+    {
+      *pu8Value++ = 0;
+      *pu8Value++ = 0;
+    }
   }
 
   // Updates texture with indices
-  orxDisplay_SetBitmapData(pstBitmap, pu8Data, u32BitmapSize * sizeof(orxRGBA));
+  orxDisplay_SetBitmapData(pstBitmap, pu8Data, u32BitmapWidth * u32BitmapHeight * sizeof(orxRGBA));
 
   // Deletes bitmap data
   orxMemory_Free(pu8Data);

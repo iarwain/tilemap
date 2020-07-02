@@ -95,10 +95,10 @@ TileSet *LoadTileSet(const orxSTRING _zSetName)
         orxVector_Round(&vTileOrigin, orxVector_Div(&vTileOrigin, &vTileOrigin, &pstSet->vTileSize));
 
         // Computes its index
-        u32TileIndex = orxF2U(vTileOrigin.fX + (pstSet->vSize.fX * vTileOrigin.fY));
+        u32TileIndex = orxF2U(vTileOrigin.fX + (pstSet->vSize.fX * vTileOrigin.fY)) + 1;
 
         // Stores it
-        orxHashTable_Add(pstSet->pstIndexMap, (orxU64)zSectionName, (void *) CAST_HELPER u32TileIndex);
+        orxHashTable_Add(pstSet->pstIndexMap, (orxU64)orxString_ToCRC(zSectionName), (void *) CAST_HELPER u32TileIndex);
       }
     }
   }
@@ -195,7 +195,7 @@ orxTEXTURE *LoadMap(const orxSTRING _zMapName, const TileSet *_pstTileSet)
       orxConfig_PopSection();
 
       // Gets matching tile index
-      u32Index = (orxU32)CAST_HELPER orxHashTable_Get(_pstTileSet->pstIndexMap, (orxU64)zTile);
+      u32Index = (orxU32)CAST_HELPER orxHashTable_Get(_pstTileSet->pstIndexMap, (orxU64)orxString_ToCRC(zTile)) - 1;
 
       // Stores it over two bytes
       *pu8Value++ = (u32Index & 0xFF00) >> 8;

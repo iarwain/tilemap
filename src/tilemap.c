@@ -254,6 +254,9 @@ void orxFASTCALL Update(const orxCLOCK_INFO *_pstInfo, void *_pContext)
     {
       // Resets scroll speed
       orxVector_Copy(&svScrollSpeed, &orxVECTOR_0);
+
+      // Grabs mouse
+      orxMouse_Grab(orxTRUE);
     }
     else
     {
@@ -271,6 +274,12 @@ void orxFASTCALL Update(const orxCLOCK_INFO *_pstInfo, void *_pContext)
     {
       // Computes speed
       orxVector_Mul(&svScrollSpeed, orxVector_Sub(&svScrollSpeed, &svMousePos, &vMousePos), &vRatio);
+
+      // Releases mouse
+      orxMouse_Grab(orxFALSE);
+
+      // Restores its position
+      orxMouse_SetPosition(&vMousePos);
     }
   }
 
